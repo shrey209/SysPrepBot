@@ -1,0 +1,4 @@
+openai
+python-telegram-bot
+pypdf
+
