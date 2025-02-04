@@ -1,22 +1,55 @@
 from pypdf import PdfReader
+import os
+from dataclasses import dataclass
 
-pdf_file_path = ".\BartoSutton.pdf"
+@dataclass
+class UserState:
+    current_page: int
+    current_book: int 
 
-# reader = PdfReader(pdf_file_path)
-# num_pages = len(reader.pages)
+chat_map = {}
 
-# print(f"Total Pages: {num_pages}\n")
+def initUser(chatid):
+    chat_map[chatid] = UserState(0, 0)  
 
+def getfile(no):
+    folder_path = "./papers"
+    files = sorted(os.listdir(folder_path))  
+    if no >= len(files):
+        raise IndexError("No more books available.")  
+    return os.path.join(folder_path, files[no])  
 
-# page = reader.pages[100]
-  
-# print(page.extract_text())
+def read_page(chatid):
+    user = chat_map.get(chatid)
+    
+    if user is None:
+        raise ValueError("User not initialized. Call initUser(chatid) first.")
 
+    try:
+        book_path = getfile(user.current_book)
+    except IndexError:
+        return "No more books available."
 
-def read_page():
-    reader=PdfReader(pdf_file_path)
-    return reader.pages[100].extract_text()
+    reader = PdfReader(book_path)
+    num_pages = len(reader.pages)
 
+    page = user.current_page + 1  
 
+   
+    if page >= num_pages:
+        try:
+            book_path = getfile(user.current_book + 1)
+        except IndexError:
+            return "No more books available."
+        
+        page = 0  
+        user.current_book += 1  
+
+    
+    user.current_page = page
+    chat_map[chatid] = user
+
+   
+    return reader.pages[page].extract_text()
 
 

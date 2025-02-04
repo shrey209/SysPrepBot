@@ -2,13 +2,17 @@ import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-Core_memory={}
+from pdf_manager import read_page
+from collections import deque
 
-pastPrompts={}
+fixed_size_queue = deque(maxlen=5)
 
-endpoint=os.getenv("ENDPOINT")
-api_key=os.getenv("AZURE_OPENAI_KEY")
-deployment=os.getenv("DEPLOYMENT")
+
+load_dotenv()
+
+endpoint = os.getenv("ENDPOINT")
+api_key = os.getenv("AZURE_OPENAI_KEY")
+deployment = os.getenv("DEPLOYMENT")
 
 client = AzureOpenAI(
     api_version="2024-05-01-preview",
@@ -16,45 +20,45 @@ client = AzureOpenAI(
     api_key=api_key
 )
 
-
-chat_prompt = [
-    {
-        "role": "system",
-        "content": [
-            {
-                "type": "text",
-                "text": "You are an a system design expert your job is to summarize the system design papers each ,time you will get a page and you have to summarize it for the user,you have to shortend it upto 2/3 "
-            }
-        ]
-
-    },
-     {
-        "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": page.extract_text()
-            }
-        ]
-        
-    }
-] 
+def interaction(chatid):
     
-# Include speech result if speech is enabled  
-messages = chat_prompt 
+    data=read_page(chatid=chatid)
+    
+    sumarize_text=""
+    for item in fixed_size_queue:
+        sumarize_text+=item
+          
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a system design expert. Your job is to summarize system design papers. Each time you receive a page, summarize it up to 2/4 of the original content.you must explain in as much easier language and use some emojis if required"
+        },
+        {
+            "role":"user",
+            "content":data
+        },
+        {
+            "role":"user",
+            "content":"previous page summary to provide the context of what have been discussed->"
+        }
+    ]
+    
+    # Send initial request to the LLM
+    completion = client.chat.completions.create(
+        model=deployment,
+        messages=messages,
+        max_tokens=800,
+        temperature=0.7,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None,
+        stream=False,
+    )
+    response_message = completion.choices[0].message.content
+    fixed_size_queue.append(response_message)
 
-completion = client.chat.completions.create(  
-    model=deployment,  
-    messages=messages,
-    max_tokens=800,  
-    temperature=0.7,  
-    top_p=0.95,  
-    frequency_penalty=0,  
-    presence_penalty=0,
-    stop=None,  
-    stream=False  
-)  
-  
-response=completion
-print(response.choices[0].message)  
-print("ended")
+    return response_message
+
+   
+ 
