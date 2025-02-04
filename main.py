@@ -1,6 +1,9 @@
 
+
+from telegram_handler import BotHandler
+
 def main() -> None:
-    print("Hello, world!")
+    BotHandler()
 
 
 if __name__ == '__main__':

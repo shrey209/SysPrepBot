@@ -4,3 +4,6 @@ myenv/
 __pycache__/
 .idea/
 .vscode/
+.env
+
+BartoSutton.pdf
