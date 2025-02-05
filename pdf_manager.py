@@ -9,6 +9,22 @@ class UserState:
 
 chat_map = {}
 
+def changeBook(chatid):
+    user = chat_map.get(chatid)
+    if user is None:
+        raise ValueError("User not initialized. Call initUser(chatid) first.")
+
+    user.current_book += 1
+    user.current_page = 0
+
+    try:
+        book_path = getfile(user.current_book)
+    except IndexError:
+        raise IndexError("No more books available.")
+
+    return f"Switched to book number {user.current_book}."
+    
+
 def initUser(chatid):
     chat_map[chatid] = UserState(0, 0)  
 
