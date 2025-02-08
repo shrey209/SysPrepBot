@@ -36,15 +36,15 @@ def interaction(chatid):
     messages = [
         {
             "role": "system",
-            "content": "You are a system design expert. Your job is to summarize system design papers. Each time you receive a page, summarize it up to 2/4 of the original content. Explain in simple terms, and use emojis if required."
+            "content": "You are a system design expert. Your job is to summarize system design papers. Each time you receive a page, summarize it up to 3/4 of the original content. Explain in simple terms, and use emojis if required."
+        },
+        {
+            "role": "system",
+            "content": "Previous page summary for better understanding -> " + summarize_text
         },
         {
             "role": "user",
-            "content": data
-        },
-        {
-            "role": "user",
-            "content": "Previous page summary for context -> " + summarize_text
+            "content":"current page->"+ data
         }
     ]
 
@@ -52,7 +52,7 @@ def interaction(chatid):
     completion = client.chat.completions.create(
         model=deployment,
         messages=messages,
-        max_tokens=800,
+        max_tokens=900,
         temperature=0.7,
         top_p=0.95,
         frequency_penalty=0,
